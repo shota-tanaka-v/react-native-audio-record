@@ -5,6 +5,8 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.util.Base64;
 import android.util.Log;
+import android.content.Intent;
+import android.os.Build;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
