@@ -13,13 +13,13 @@ public class RNAudioRecordPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-      List<NativeModule> modules = new ArrayList<>();
-      modules.add(new RNAudioRecordModule(reactContext));
-      return modules;
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(new RNAudioRecordModule(reactContext));
+        return modules;
     }
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-      return Collections.emptyList();
+        return Collections.emptyList();
     }
 }

@@ -5,6 +5,9 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.util.Base64;
 import android.util.Log;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
@@ -113,7 +116,8 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
         try {
             FileInputStream in = new FileInputStream(tmpFile);
             FileOutputStream out = new FileOutputStream(outFile);
-            long totalAudioLen = in.getChannel().size();;
+            long totalAudioLen = in.getChannel().size();
+            ;
             long totalDataLen = totalAudioLen + 36;
 
             addWavHeader(out, totalAudioLen, totalDataLen);
@@ -140,7 +144,7 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
         long sampleRate = sampleRateInHz;
         int channels = channelConfig == AudioFormat.CHANNEL_IN_MONO ? 1 : 2;
         int bitsPerSample = audioFormat == AudioFormat.ENCODING_PCM_8BIT ? 8 : 16;
-        long byteRate =  sampleRate * channels * bitsPerSample / 8;
+        long byteRate = sampleRate * channels * bitsPerSample / 8;
         int blockAlign = channels * bitsPerSample / 8;
 
         byte[] header = new byte[44];
@@ -196,5 +200,36 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
     private void deleteTempFile() {
         File file = new File(tmpFile);
         file.delete();
+    }
+
+    private final BroadcastReceiver audioReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("RNAudioRecord", "onReceive triggered");
+            String base64 = intent.getStringExtra("data");
+            if (base64 != null && eventEmitter != null) {
+                eventEmitter.emit("data", base64);
+            }
+        }
+    };
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        IntentFilter filter = new IntentFilter("AudioRecordData");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getReactApplicationContext().registerReceiver(
+                    audioReceiver,
+                    filter,
+                    Build.VERSION.SDK_INT >= 34 ? Context.RECEIVER_NOT_EXPORTED : 0
+            );
+        }
+    }
+
+    @Override
+    public void onCatalystInstanceDestroy() {
+        super.onCatalystInstanceDestroy();
+        getReactApplicationContext().unregisterReceiver(audioReceiver);
     }
 }
